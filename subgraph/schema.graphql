@@ -1,0 +1,128 @@
+type Task @entity {
+  id: ID!
+  taskId: BigInt!
+  creator: User!
+  worker: User
+  ipfsHash: String!
+  bounty: BigInt!
+  deadline: BigInt!
+  status: TaskStatus!
+  category: TaskCategory!
+  createdAt: BigInt!
+  completedAt: BigInt
+  submissionHash: String
+  requiredReputation: BigInt!
+  isUrgent: Boolean!
+  applications: [TaskApplication!]! @derivedFrom(field: "task")
+}
+
+enum TaskStatus {
+  Open
+  Assigned
+  Submitted
+  Completed
+  Disputed
+  Cancelled
+}
+
+enum TaskCategory {
+  Development
+  Design
+  Writing
+  Marketing
+  Research
+  DataEntry
+  Testing
+  Other
+}
+
+type User @entity {
+  id: ID!
+  address: Bytes!
+  createdTasks: [Task!]! @derivedFrom(field: "creator")
+  assignedTasks: [Task!]! @derivedFrom(field: "worker")
+  applications: [TaskApplication!]! @derivedFrom(field: "applicant")
+  reputationScore: BigInt!
+  reputationTier: ReputationTier!
+  tasksCompleted: BigInt!
+  tasksCreated: BigInt!
+  totalEarned: BigInt!
+  totalStaked: BigInt!
+  disputesWon: BigInt!
+  disputesLost: BigInt!
+  currentStreak: BigInt!
+  longestStreak: BigInt!
+  achievements: [Achievement!]!
+  referrer: User
+  referrals: [User!]! @derivedFrom(field: "referrer")
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
+enum ReputationTier {
+  Bronze
+  Silver
+  Gold
+  Platinum
+  Diamond
+}
+
+type TaskApplication @entity {
+  id: ID!
+  task: Task!
+  applicant: User!
+  timestamp: BigInt!
+}
+
+type Achievement @entity {
+  id: ID!
+  achievementId: Bytes!
+  name: String!
+  unlockedBy: [User!]!
+  unlockedAt: BigInt!
+}
+
+type Challenge @entity {
+  id: ID!
+  challengeId: BigInt!
+  name: String!
+  description: String!
+  startTime: BigInt!
+  endTime: BigInt!
+  rewardPool: BigInt!
+  targetTasks: BigInt!
+  participantCount: BigInt!
+  active: Boolean!
+  completed: Boolean!
+  participants: [User!]!
+}
+
+type Streak @entity {
+  id: ID!
+  user: User!
+  currentStreak: BigInt!
+  longestStreak: BigInt!
+  lastTaskDate: BigInt!
+  totalBonusEarned: BigInt!
+  updatedAt: BigInt!
+}
+
+type ReputationUpdate @entity {
+  id: ID!
+  user: User!
+  oldScore: BigInt!
+  newScore: BigInt!
+  oldTier: ReputationTier!
+  newTier: ReputationTier!
+  timestamp: BigInt!
+  txHash: Bytes!
+}
+
+type PlatformStats @entity {
+  id: ID!
+  totalTasks: BigInt!
+  totalUsers: BigInt!
+  totalVolume: BigInt!
+  totalCompleted: BigInt!
+  updatedAt: BigInt!
+}
