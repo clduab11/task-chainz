@@ -1,0 +1,163 @@
+.browse-tasks {
+  padding: 2rem 0;
+}
+
+.browse-header {
+  margin-bottom: 2rem;
+}
+
+.browse-header h1 {
+  margin-bottom: 1rem;
+}
+
+.filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #444;
+  background: #2a2a2a;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.filter-btn:hover {
+  border-color: #646cff;
+}
+
+.filter-btn.active {
+  background: #646cff;
+  border-color: #646cff;
+}
+
+.tasks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.task-card {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.3s, border-color 0.3s;
+  position: relative;
+}
+
+.task-card:hover {
+  transform: translateY(-5px);
+  border-color: #646cff;
+}
+
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.task-header h3 {
+  flex: 1;
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.category-badge {
+  background: #2a2a2a;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  border: 1px solid #444;
+  white-space: nowrap;
+}
+
+.task-description {
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.task-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid #333;
+}
+
+.bounty {
+  font-weight: 600;
+  color: #4ade80;
+}
+
+.deadline {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.status-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: #4ade80;
+  color: black;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.no-tasks {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 4rem 2rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+@media (max-width: 768px) {
+  .tasks-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  .filter-btn {
+    background: #f0f0f0;
+    border-color: #ddd;
+    color: #213547;
+  }
+
+  .task-card {
+    background: #f9f9f9;
+    border-color: #ddd;
+  }
+
+  .task-description {
+    color: #666;
+  }
+
+  .category-badge {
+    background: white;
+    border-color: #ddd;
+  }
+
+  .task-footer {
+    border-top-color: #ddd;
+  }
+
+  .deadline {
+    color: #666;
+  }
+
+  .no-tasks {
+    color: #666;
+  }
+}
