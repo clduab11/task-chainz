@@ -1,0 +1,54 @@
+{
+  "filter_paths": [
+    "node_modules",
+    "test",
+    "scripts"
+  ],
+  "exclude_informational": false,
+  "exclude_low": false,
+  "exclude_medium": false,
+  "exclude_high": false,
+  "exclude_optimization": false,
+  "solc_remaps": [
+    "@openzeppelin/=node_modules/@openzeppelin/"
+  ],
+  "detectors_to_run": [
+    "reentrancy-eth",
+    "reentrancy-no-eth",
+    "reentrancy-benign",
+    "reentrancy-events",
+    "unprotected-upgrade",
+    "arbitrary-send-eth",
+    "controlled-delegatecall",
+    "delegatecall-loop",
+    "msg-value-loop",
+    "unchecked-transfer",
+    "unchecked-lowlevel",
+    "unchecked-send",
+    "uninitialized-state",
+    "uninitialized-storage",
+    "uninitialized-local",
+    "tx-origin",
+    "locked-ether",
+    "divide-before-multiply",
+    "incorrect-equality",
+    "shadowing-state",
+    "shadowing-builtin",
+    "shadowing-local",
+    "shadowing-abstract",
+    "timestamp",
+    "weak-prng",
+    "boolean-cst",
+    "constant-function-asm",
+    "constant-function-state",
+    "suicidal",
+    "backdoor"
+  ],
+  "printers_to_run": [
+    "contract-summary",
+    "function-summary",
+    "human-summary",
+    "inheritance-graph",
+    "call-graph"
+  ]
+}

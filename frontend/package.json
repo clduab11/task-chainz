@@ -29,12 +29,18 @@
     "clsx": "^2.1.0",
     "tailwind-merge": "^2.2.0",
     "ipfs-http-client": "^60.0.1",
-    "markdown-it": "^14.0.0"
+    "markdown-it": "^14.0.0",
+    "dompurify": "^3.0.8",
+    "@sentry/react": "^7.93.0",
+    "mixpanel-browser": "^2.49.0",
+    "react-ga4": "^2.1.0",
+    "react-joyride": "^2.7.2"
   },
   "devDependencies": {
     "@types/react": "^18.2.47",
     "@types/react-dom": "^18.2.18",
     "@types/markdown-it": "^13.0.7",
+    "@types/dompurify": "^3.0.5",
     "@typescript-eslint/eslint-plugin": "^6.18.1",
     "@typescript-eslint/parser": "^6.18.1",
     "@vitejs/plugin-react": "^4.2.1",
