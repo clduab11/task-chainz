@@ -1,0 +1,35 @@
+{
+  "name": "task-chainz",
+  "version": "1.0.0",
+  "description": "Decentralized task marketplace with crypto rewards",
+  "private": true,
+  "workspaces": [
+    "contracts",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "install:all": "npm install && cd contracts && npm install && cd ../backend && npm install && cd ../frontend && npm install",
+    "contracts:compile": "cd contracts && npm run compile",
+    "contracts:test": "cd contracts && npm run test",
+    "contracts:deploy": "cd contracts && npm run deploy",
+    "backend:dev": "cd backend && npm run dev",
+    "backend:test": "cd backend && npm run test",
+    "frontend:dev": "cd frontend && npm run dev",
+    "frontend:build": "cd frontend && npm run build",
+    "dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\""
+  },
+  "keywords": [
+    "blockchain",
+    "web3",
+    "ethereum",
+    "polygon",
+    "defi",
+    "marketplace"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

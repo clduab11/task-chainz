@@ -1,0 +1,44 @@
+type Task @entity {
+  id: ID!
+  taskId: BigInt!
+  creator: User!
+  assignee: User
+  title: String!
+  descriptionHash: String!
+  bounty: BigInt!
+  status: TaskStatus!
+  createdAt: BigInt!
+  deadline: BigInt!
+  completedAt: BigInt
+  fundsReleased: Boolean!
+  disputes: [Dispute!]! @derivedFrom(field: "task")
+}
+
+type User @entity {
+  id: ID! # wallet address
+  tasksCreated: [Task!]! @derivedFrom(field: "creator")
+  tasksAssigned: [Task!]! @derivedFrom(field: "assignee")
+  totalEarned: BigInt!
+  tasksCompleted: Int!
+  disputesInitiated: [Dispute!]! @derivedFrom(field: "initiator")
+}
+
+type Dispute @entity {
+  id: ID!
+  disputeId: BigInt!
+  task: Task!
+  initiator: User!
+  reason: String!
+  createdAt: BigInt!
+  resolved: Boolean!
+  winner: User
+}
+
+enum TaskStatus {
+  Open
+  Assigned
+  Submitted
+  Completed
+  Disputed
+  Cancelled
+}
