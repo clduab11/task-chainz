@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # Hardhat local node
+  hardhat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: npx hardhat node
+    ports:
+      - "8545:8545"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8545"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Deploy contracts to local node
+  deployer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: npm run deploy:local
+    depends_on:
+      hardhat:
+        condition: service_healthy
+    environment:
+      - HARDHAT_NETWORK=localhost
+
+  # Frontend application
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - deployer
+    environment:
+      - NEXT_PUBLIC_CHAIN_ID=31337
+      - NEXT_PUBLIC_RPC_URL=http://hardhat:8545
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # IPFS node (optional, for local development)
+  ipfs:
+    image: ipfs/kubo:latest
+    ports:
+      - "4001:4001"
+      - "5001:5001"
+      - "8080:8080"
+    volumes:
+      - ipfs_data:/data/ipfs
+
+volumes:
+  ipfs_data:
