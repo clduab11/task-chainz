@@ -93,7 +93,8 @@ contract ReputationNFT is ERC721, ERC721URIStorage, ERC721Enumerable, AccessCont
         require(to != address(0), "Invalid address");
 
         // Increment counter BEFORE assignment so tokenIds start at 1, not 0
-        // This allows 0 to be used as sentinel value in _userTokenId mapping
+        // This is critical for the sentinel pattern: _userTokenId[address] == 0 means "no NFT"
+        // while any non-zero value is a valid tokenId pointing to the user's reputation NFT
         _tokenIdCounter++;
         uint256 tokenId = _tokenIdCounter;
 

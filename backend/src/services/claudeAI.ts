@@ -86,7 +86,7 @@ Requirements: ${requirements}
 
 Provide a JSON response with:
 {
-  "complexity": "low|medium|high|expert",
+  "complexity": "low|medium|high|expert" (expert = requires specialized/senior expertise),
   "estimatedHours": number,
   "suggestedBounty": number (in TASKZ tokens, assuming $0.10 per token and $20-100/hr rate),
   "reasoning": "brief explanation"

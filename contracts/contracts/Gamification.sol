@@ -313,24 +313,24 @@ contract Gamification is AccessControl, ReentrancyGuard {
         require(block.timestamp >= challenge.endTime, "Challenge not ended");
 
         address[] memory participants = challengeParticipants[challengeId];
-        uint256 winnerCount = 0;
         
-        // Single pass: count winners and set rewards
+        // First pass: count winners
+        uint256 winnerCount = 0;
+        address[] memory winners = new address[](participants.length);
+        
         for (uint256 i = 0; i < participants.length; i++) {
             address participant = participants[i];
             if (challengeProgress[challengeId][participant] >= challenge.targetTasks) {
+                winners[winnerCount] = participant;
                 winnerCount++;
             }
         }
         
+        // Second pass: set rewards only for confirmed winners
         if (winnerCount > 0) {
             uint256 rewardPerWinner = challenge.rewardPool / winnerCount;
-            // Set rewards for each winner
-            for (uint256 i = 0; i < participants.length; i++) {
-                address participant = participants[i];
-                if (challengeProgress[challengeId][participant] >= challenge.targetTasks) {
-                    challengeRewards[challengeId][participant] = rewardPerWinner;
-                }
+            for (uint256 i = 0; i < winnerCount; i++) {
+                challengeRewards[challengeId][winners[i]] = rewardPerWinner;
             }
             emit ChallengeFinalized(challengeId, winnerCount, rewardPerWinner);
         }
