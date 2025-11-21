@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -76,6 +76,8 @@ contract Gamification is AccessControl, ReentrancyGuard {
     mapping(uint256 => Challenge) public challenges;
     mapping(uint256 => mapping(address => uint256)) public challengeProgress;
     mapping(uint256 => address[]) public challengeParticipants;
+    mapping(uint256 => mapping(address => uint256)) public challengeRewards; // Claimable rewards per user
+    mapping(uint256 => mapping(address => bool)) public rewardsClaimed; // Track claimed rewards
     uint256 private _challengeIdCounter;
 
     // Streak multipliers
@@ -93,6 +95,8 @@ contract Gamification is AccessControl, ReentrancyGuard {
     event ChallengeCreated(uint256 indexed challengeId, string name, uint256 rewardPool);
     event ChallengeJoined(uint256 indexed challengeId, address indexed user);
     event ChallengeCompleted(uint256 indexed challengeId, address indexed user);
+    event ChallengeFinalized(uint256 indexed challengeId, uint256 winnerCount, uint256 rewardPerWinner);
+    event ChallengeRewardClaimed(uint256 indexed challengeId, address indexed user, uint256 amount);
     event LeaderboardUpdated(address indexed user, uint256 position, uint256 score);
 
     constructor(address _taskToken) {
@@ -294,44 +298,72 @@ contract Gamification is AccessControl, ReentrancyGuard {
     }
 
     /**
-     * @dev Finalize challenge and distribute rewards
+     * @dev Finalize challenge and calculate rewards (pull-over-push pattern to avoid DoS)
      * @param challengeId ID of the challenge
+     * @param batchStart Start index for processing participants
+     * @param batchSize Number of participants to process in this batch
      */
-    function finalizeChallenge(uint256 challengeId)
+    function finalizeChallenge(uint256 challengeId, uint256 batchStart, uint256 batchSize)
         external
         nonReentrant
         onlyRole(GAME_MANAGER_ROLE)
     {
         Challenge storage challenge = challenges[challengeId];
-        require(challenge.active, "Challenge not active");
+        require(challenge.active || challenge.completed, "Challenge not active");
         require(block.timestamp >= challenge.endTime, "Challenge not ended");
 
-        challenge.active = false;
-        challenge.completed = true;
-
-        // Find winners (users who met target)
         address[] memory participants = challengeParticipants[challengeId];
-        uint256 winnerCount = 0;
-
-        for (uint256 i = 0; i < participants.length; i++) {
-            if (challengeProgress[challengeId][participants[i]] >= challenge.targetTasks) {
-                winnerCount++;
-            }
+        uint256 batchEnd = batchStart + batchSize;
+        if (batchEnd > participants.length) {
+            batchEnd = participants.length;
         }
 
-        if (winnerCount > 0) {
-            uint256 rewardPerWinner = challenge.rewardPool / winnerCount;
-
+        // First pass: count winners if not already completed
+        if (!challenge.completed) {
+            uint256 winnerCount = 0;
             for (uint256 i = 0; i < participants.length; i++) {
                 if (challengeProgress[challengeId][participants[i]] >= challenge.targetTasks) {
-                    taskToken.safeTransfer(participants[i], rewardPerWinner);
+                    winnerCount++;
                 }
             }
+            
+            if (winnerCount > 0) {
+                uint256 rewardPerWinner = challenge.rewardPool / winnerCount;
+                // Store rewards for each winner
+                for (uint256 i = 0; i < participants.length; i++) {
+                    address participant = participants[i];
+                    if (challengeProgress[challengeId][participant] >= challenge.targetTasks) {
+                        challengeRewards[challengeId][participant] = rewardPerWinner;
+                    }
+                }
+                emit ChallengeFinalized(challengeId, winnerCount, rewardPerWinner);
+            }
+            
+            challenge.active = false;
+            challenge.completed = true;
         }
     }
 
     /**
-     * @dev Update leaderboard
+     * @dev Claim challenge rewards (pull pattern)
+     * @param challengeId ID of the challenge
+     */
+    function claimChallengeReward(uint256 challengeId) external nonReentrant {
+        Challenge storage challenge = challenges[challengeId];
+        require(challenge.completed, "Challenge not finalized");
+        require(!rewardsClaimed[challengeId][msg.sender], "Reward already claimed");
+        
+        uint256 reward = challengeRewards[challengeId][msg.sender];
+        require(reward > 0, "No reward available");
+
+        rewardsClaimed[challengeId][msg.sender] = true;
+        taskToken.safeTransfer(msg.sender, reward);
+        
+        emit ChallengeRewardClaimed(challengeId, msg.sender, reward);
+    }
+
+    /**
+     * @dev Update leaderboard (emit events only, sorting handled off-chain to avoid gas costs)
      * @param user User to update
      * @param score New score
      * @param tasksCompleted Total tasks completed
@@ -367,6 +399,7 @@ contract Gamification is AccessControl, ReentrancyGuard {
             });
         }
 
+        // Emit event for off-chain indexing and sorting
         emit LeaderboardUpdated(user, position, score);
     }
 

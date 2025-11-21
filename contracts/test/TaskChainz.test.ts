@@ -1,8 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { TaskChainzToken, ReputationNFT, TaskManager, Gamification } from "../typechain-types";
-import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 describe("Task Chainz Platform", function () {
   async function deployTaskChainzFixture() {
@@ -33,9 +31,7 @@ describe("Task Chainz Platform", function () {
     await gamification.waitForDeployment();
 
     // Grant roles
-    const MINTER_ROLE = await token.MINTER_ROLE();
     const REPUTATION_MANAGER_ROLE = await reputationNFT.REPUTATION_MANAGER_ROLE();
-    const GAME_MANAGER_ROLE = await gamification.GAME_MANAGER_ROLE();
 
     await reputationNFT.grantRole(REPUTATION_MANAGER_ROLE, await taskManager.getAddress());
     await reputationNFT.grantRole(
@@ -87,7 +83,7 @@ describe("Task Chainz Platform", function () {
     });
 
     it("Should create vesting schedule", async function () {
-      const { token, owner, user2 } = await loadFixture(deployTaskChainzFixture);
+      const { token, user2 } = await loadFixture(deployTaskChainzFixture);
       const amount = ethers.parseEther("1000");
       const duration = 365 * 24 * 60 * 60; // 1 year
       const cliff = 30 * 24 * 60 * 60; // 30 days
@@ -121,7 +117,7 @@ describe("Task Chainz Platform", function () {
     });
 
     it("Should update reputation score", async function () {
-      const { reputationNFT, taskManager, worker } = await loadFixture(deployTaskChainzFixture);
+      const { reputationNFT, worker } = await loadFixture(deployTaskChainzFixture);
 
       await reputationNFT.updateReputation(worker.address, 1000, 1);
 
@@ -322,7 +318,7 @@ describe("Task Chainz Platform", function () {
     });
 
     it("Should create community challenge", async function () {
-      const { gamification, token, owner } = await loadFixture(deployTaskChainzFixture);
+      const { gamification, token } = await loadFixture(deployTaskChainzFixture);
 
       const rewardPool = ethers.parseEther("1000");
       await token.approve(await gamification.getAddress(), rewardPool);
@@ -346,7 +342,7 @@ describe("Task Chainz Platform", function () {
 
   describe("Integration Tests", function () {
     it("Should handle complete task with reputation and gamification", async function () {
-      const { taskManager, reputationNFT, gamification, creator, worker } =
+      const { taskManager, reputationNFT, creator, worker } =
         await loadFixture(deployTaskChainzFixture);
 
       const bounty = ethers.parseEther("100");

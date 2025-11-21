@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 
 /**
  * @title ReputationNFT
@@ -19,12 +18,10 @@ import "@openzeppelin/contracts/utils/Counters.sol";
  * - Upgradeable reputation levels
  */
 contract ReputationNFT is ERC721, ERC721URIStorage, ERC721Enumerable, AccessControl {
-    using Counters for Counters.Counter;
-
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant REPUTATION_MANAGER_ROLE = keccak256("REPUTATION_MANAGER_ROLE");
 
-    Counters.Counter private _tokenIdCounter;
+    uint256 private _tokenIdCounter;
 
     enum ReputationTier {
         Bronze,    // 0-999 points
@@ -94,8 +91,9 @@ contract ReputationNFT is ERC721, ERC721URIStorage, ERC721Enumerable, AccessCont
         require(_userTokenId[to] == 0, "User already has reputation NFT");
         require(to != address(0), "Invalid address");
 
-        uint256 tokenId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
+        // Increment counter BEFORE assignment to avoid tokenId=0 sentinel clash
+        _tokenIdCounter++;
+        uint256 tokenId = _tokenIdCounter;
 
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, tokenURI);
@@ -204,28 +202,33 @@ contract ReputationNFT is ERC721, ERC721URIStorage, ERC721Enumerable, AccessCont
     }
 
     /**
-     * @dev Check and unlock achievements
+     * @dev Check and unlock achievements (event-based, off-chain indexing recommended)
+     * Only checks specific achievements that can be verified without iteration
      */
     function _checkAchievements(uint256 tokenId, address user) private {
         ReputationData storage data = _reputationData[tokenId];
 
-        for (uint256 i = 0; i < achievementIds.length; i++) {
-            bytes32 achievementId = achievementIds[i];
-
-            if (!data.achievements[achievementId]) {
-                bool unlocked = false;
-
-                if (achievementId == "FIRST_TASK" && data.tasksCompleted >= 1) unlocked = true;
-                else if (achievementId == "TASK_VETERAN" && data.tasksCompleted >= 100) unlocked = true;
-                else if (achievementId == "TASK_MASTER" && data.tasksCompleted >= 1000) unlocked = true;
-                else if (achievementId == "BIG_EARNER" && data.totalEarned >= 10000 ether) unlocked = true;
-                else if (achievementId == "DISPUTE_CHAMPION" && data.disputesWon >= 50) unlocked = true;
-
-                if (unlocked) {
-                    data.achievements[achievementId] = true;
-                    emit AchievementUnlocked(tokenId, user, achievementId);
-                }
-            }
+        // Check specific achievements based on current state without iterating all
+        // Use direct verification to avoid gas-intensive loops
+        if (!data.achievements["FIRST_TASK"] && data.tasksCompleted >= 1) {
+            data.achievements["FIRST_TASK"] = true;
+            emit AchievementUnlocked(tokenId, user, "FIRST_TASK");
+        }
+        if (!data.achievements["TASK_VETERAN"] && data.tasksCompleted >= 100) {
+            data.achievements["TASK_VETERAN"] = true;
+            emit AchievementUnlocked(tokenId, user, "TASK_VETERAN");
+        }
+        if (!data.achievements["TASK_MASTER"] && data.tasksCompleted >= 1000) {
+            data.achievements["TASK_MASTER"] = true;
+            emit AchievementUnlocked(tokenId, user, "TASK_MASTER");
+        }
+        if (!data.achievements["BIG_EARNER"] && data.totalEarned >= 10000 ether) {
+            data.achievements["BIG_EARNER"] = true;
+            emit AchievementUnlocked(tokenId, user, "BIG_EARNER");
+        }
+        if (!data.achievements["DISPUTE_CHAMPION"] && data.disputesWon >= 50) {
+            data.achievements["DISPUTE_CHAMPION"] = true;
+            emit AchievementUnlocked(tokenId, user, "DISPUTE_CHAMPION");
         }
     }
 

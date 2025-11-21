@@ -1,8 +1,35 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { z } from 'zod';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
+
+// Zod schemas for AI response validation
+const ComplexityResponseSchema = z.object({
+  complexity: z.enum(['low', 'medium', 'high', 'expert']),
+  estimatedHours: z.number().positive(),
+  suggestedBounty: z.number().positive(),
+  reasoning: z.string(),
+});
+
+const FraudDetectionSchema = z.object({
+  isSuspicious: z.boolean(),
+  riskLevel: z.enum(['low', 'medium', 'high']),
+  flags: z.array(z.string()),
+});
+
+const TaskRecommendationSchema = z.array(z.number().int().nonnegative());
+
+const TaskTemplateSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  requirements: z.array(z.string()),
+  deliverables: z.array(z.string()),
+});
+
+// Use environment variable for model version
+const AI_MODEL = process.env.ANTHROPIC_MODEL || 'claude-3-5-sonnet-20241022';
 
 export class ClaudeAIService {
   /**
@@ -11,7 +38,7 @@ export class ClaudeAIService {
   async categorizeTask(taskDescription: string): Promise<string> {
     try {
       const message = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
+        model: AI_MODEL,
         max_tokens: 100,
         messages: [
           {
@@ -47,7 +74,7 @@ Reply with only the category name.`,
   }> {
     try {
       const message = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
+        model: AI_MODEL,
         max_tokens: 500,
         messages: [
           {
@@ -70,7 +97,9 @@ Provide a JSON response with:
 
       const content = message.content[0];
       if (content.type === 'text') {
-        return JSON.parse(content.text);
+        const parsed = JSON.parse(content.text);
+        const validated = ComplexityResponseSchema.parse(parsed);
+        return validated;
       }
       throw new Error('Invalid response');
     } catch (error) {
@@ -94,7 +123,7 @@ Provide a JSON response with:
   }> {
     try {
       const message = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
+        model: AI_MODEL,
         max_tokens: 300,
         messages: [
           {
@@ -123,7 +152,9 @@ Respond in JSON:
 
       const content = message.content[0];
       if (content.type === 'text') {
-        return JSON.parse(content.text);
+        const parsed = JSON.parse(content.text);
+        const validated = FraudDetectionSchema.parse(parsed);
+        return validated;
       }
       throw new Error('Invalid response');
     } catch (error) {
@@ -142,7 +173,7 @@ Respond in JSON:
   async recommendTasks(userProfile: any, availableTasks: any[]): Promise<number[]> {
     try {
       const message = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
+        model: AI_MODEL,
         max_tokens: 200,
         messages: [
           {
@@ -159,7 +190,9 @@ Return JSON array of task indices (0-based): [0, 2, 5, ...]`,
 
       const content = message.content[0];
       if (content.type === 'text') {
-        return JSON.parse(content.text);
+        const parsed = JSON.parse(content.text);
+        const validated = TaskRecommendationSchema.parse(parsed);
+        return validated;
       }
       return [];
     } catch (error) {
@@ -179,7 +212,7 @@ Return JSON array of task indices (0-based): [0, 2, 5, ...]`,
   }> {
     try {
       const message = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
+        model: AI_MODEL,
         max_tokens: 800,
         messages: [
           {
@@ -201,7 +234,9 @@ Provide JSON:
 
       const content = message.content[0];
       if (content.type === 'text') {
-        return JSON.parse(content.text);
+        const parsed = JSON.parse(content.text);
+        const validated = TaskTemplateSchema.parse(parsed);
+        return validated;
       }
       throw new Error('Invalid response');
     } catch (error) {
