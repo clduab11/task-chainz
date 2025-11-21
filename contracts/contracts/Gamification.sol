@@ -299,49 +299,44 @@ contract Gamification is AccessControl, ReentrancyGuard {
 
     /**
      * @dev Finalize challenge and calculate rewards (pull-over-push pattern to avoid DoS)
+     * This function can only be called once per challenge and processes all participants
+     * to determine winners and set claimable rewards
      * @param challengeId ID of the challenge
-     * @param batchStart Start index for processing participants
-     * @param batchSize Number of participants to process in this batch
      */
-    function finalizeChallenge(uint256 challengeId, uint256 batchStart, uint256 batchSize)
+    function finalizeChallenge(uint256 challengeId)
         external
         nonReentrant
         onlyRole(GAME_MANAGER_ROLE)
     {
         Challenge storage challenge = challenges[challengeId];
-        require(challenge.active || challenge.completed, "Challenge not active");
+        require(challenge.active && !challenge.completed, "Challenge already finalized or not active");
         require(block.timestamp >= challenge.endTime, "Challenge not ended");
 
         address[] memory participants = challengeParticipants[challengeId];
-        uint256 batchEnd = batchStart + batchSize;
-        if (batchEnd > participants.length) {
-            batchEnd = participants.length;
+        uint256 winnerCount = 0;
+        
+        // Single pass: count winners and set rewards
+        for (uint256 i = 0; i < participants.length; i++) {
+            address participant = participants[i];
+            if (challengeProgress[challengeId][participant] >= challenge.targetTasks) {
+                winnerCount++;
+            }
         }
-
-        // First pass: count winners if not already completed
-        if (!challenge.completed) {
-            uint256 winnerCount = 0;
+        
+        if (winnerCount > 0) {
+            uint256 rewardPerWinner = challenge.rewardPool / winnerCount;
+            // Set rewards for each winner
             for (uint256 i = 0; i < participants.length; i++) {
-                if (challengeProgress[challengeId][participants[i]] >= challenge.targetTasks) {
-                    winnerCount++;
+                address participant = participants[i];
+                if (challengeProgress[challengeId][participant] >= challenge.targetTasks) {
+                    challengeRewards[challengeId][participant] = rewardPerWinner;
                 }
             }
-            
-            if (winnerCount > 0) {
-                uint256 rewardPerWinner = challenge.rewardPool / winnerCount;
-                // Store rewards for each winner
-                for (uint256 i = 0; i < participants.length; i++) {
-                    address participant = participants[i];
-                    if (challengeProgress[challengeId][participant] >= challenge.targetTasks) {
-                        challengeRewards[challengeId][participant] = rewardPerWinner;
-                    }
-                }
-                emit ChallengeFinalized(challengeId, winnerCount, rewardPerWinner);
-            }
-            
-            challenge.active = false;
-            challenge.completed = true;
+            emit ChallengeFinalized(challengeId, winnerCount, rewardPerWinner);
         }
+        
+        challenge.active = false;
+        challenge.completed = true;
     }
 
     /**

@@ -177,7 +177,15 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
           setSigner(newSigner)
         }
         
-        toast.success(`Network changed to chain ID: ${newChainId}`)
+        // Map chain IDs to network names for better UX
+        const networkNames: Record<number, string> = {
+          1: 'Ethereum Mainnet',
+          137: 'Polygon',
+          80001: 'Polygon Mumbai',
+          31337: 'Hardhat Local'
+        }
+        const networkName = networkNames[newChainId] || `Chain ${newChainId}`
+        toast.success(`Successfully switched to ${networkName}`)
       } catch (error) {
         console.error('Error handling network change:', error)
         toast.error('Network change failed. Please refresh the page.')

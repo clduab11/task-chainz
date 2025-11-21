@@ -88,10 +88,12 @@ contract ReputationNFT is ERC721, ERC721URIStorage, ERC721Enumerable, AccessCont
         onlyRole(MINTER_ROLE)
         returns (uint256)
     {
+        // Check if user already has NFT (0 is sentinel value since tokenIds start at 1)
         require(_userTokenId[to] == 0, "User already has reputation NFT");
         require(to != address(0), "Invalid address");
 
-        // Increment counter BEFORE assignment to avoid tokenId=0 sentinel clash
+        // Increment counter BEFORE assignment so tokenIds start at 1, not 0
+        // This allows 0 to be used as sentinel value in _userTokenId mapping
         _tokenIdCounter++;
         uint256 tokenId = _tokenIdCounter;
 
