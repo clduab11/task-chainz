@@ -124,14 +124,11 @@ export const getCSPMeta = (): string => {
 };
 
 // Secure local storage wrapper
+// Note: Never store sensitive data like private keys or secrets in localStorage
+// This wrapper provides basic error handling only
 export const secureStorage = {
   set: (key: string, value: string): void => {
     try {
-      // Don't store sensitive data
-      if (key.toLowerCase().includes('key') || key.toLowerCase().includes('secret')) {
-        console.warn('Refusing to store potentially sensitive data in localStorage');
-        return;
-      }
       localStorage.setItem(key, value);
     } catch (e) {
       console.error('Storage error:', e);

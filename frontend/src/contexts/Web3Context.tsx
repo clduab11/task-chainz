@@ -162,9 +162,34 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
       }
     }
 
-    const handleChainChanged = (chainId: string) => {
-      setChainId(parseInt(chainId, 16))
-      window.location.reload()
+    const handleChainChanged = async (chainId: string) => {
+      const newChainId = parseInt(chainId, 16)
+      setChainId(newChainId)
+      
+      // Gracefully handle network change without full page reload
+      try {
+        // Reset provider and signer to use new network
+        const newProvider = new ethers.BrowserProvider(window.ethereum)
+        setProvider(newProvider)
+        
+        if (account) {
+          const newSigner = await newProvider.getSigner()
+          setSigner(newSigner)
+        }
+        
+        // Map chain IDs to network names for better UX
+        const networkNames: Record<number, string> = {
+          1: 'Ethereum Mainnet',
+          137: 'Polygon',
+          80001: 'Polygon Mumbai',
+          31337: 'Hardhat Local'
+        }
+        const networkName = networkNames[newChainId] || `Chain ${newChainId}`
+        toast.success(`Successfully switched to ${networkName}`)
+      } catch (error) {
+        console.error('Error handling network change:', error)
+        toast.error('Network change failed. Please refresh the page.')
+      }
     }
 
     window.ethereum.on('accountsChanged', handleAccountsChanged)

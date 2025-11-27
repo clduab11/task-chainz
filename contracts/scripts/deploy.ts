@@ -99,9 +99,15 @@ async function main() {
   // Setup DAO roles in timelock
   const PROPOSER_ROLE = await timelock.PROPOSER_ROLE();
   const EXECUTOR_ROLE = await timelock.EXECUTOR_ROLE();
+  const TIMELOCK_ADMIN_ROLE = await timelock.DEFAULT_ADMIN_ROLE();
   await timelock.grantRole(PROPOSER_ROLE, daoAddress);
   await timelock.grantRole(EXECUTOR_ROLE, daoAddress);
   console.log("✅ Granted DAO timelock roles");
+
+  // Transfer admin role to timelock itself and renounce deployer role for decentralization
+  await timelock.grantRole(TIMELOCK_ADMIN_ROLE, timelockAddress);
+  await timelock.renounceRole(TIMELOCK_ADMIN_ROLE, deployer.address);
+  console.log("✅ Transferred timelock admin to itself and renounced deployer role");
 
   // 8. Fund gamification contract for bonuses
   console.log("\n💰 Funding Gamification contract...");

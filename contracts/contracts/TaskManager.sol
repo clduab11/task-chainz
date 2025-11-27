@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -280,10 +280,10 @@ contract TaskManager is ReentrancyGuard, Pausable, AccessControl {
         // Mark stake as withdrawn
         taskStakes[taskId].withdrawn = true;
 
-        // Update reputation
-        try reputationNFT.updateReputation(task.worker, int256(task.bounty / 1000), 1) {} catch {}
-        try reputationNFT.recordTaskStats(task.worker, task.bounty, false) {} catch {}
-        try reputationNFT.recordTaskStats(task.creator, task.bounty, true) {} catch {}
+        // Update reputation - let calls fail loudly for atomicity
+        reputationNFT.updateReputation(task.worker, int256(task.bounty / 1000), 1);
+        reputationNFT.recordTaskStats(task.worker, task.bounty, false);
+        reputationNFT.recordTaskStats(task.creator, task.bounty, true);
 
         emit TaskCompleted(taskId, task.worker, workerPayment);
     }

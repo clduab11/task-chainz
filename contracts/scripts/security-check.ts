@@ -101,7 +101,6 @@ async function runSecurityChecks() {
       severity: 'high',
       check: async () => {
         const contracts = ['TaskManager.sol', 'TaskChainzToken.sol'];
-        let passed = true;
         let details = '';
 
         for (const contract of contracts) {
