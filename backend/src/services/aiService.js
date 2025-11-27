@@ -2,16 +2,26 @@ const Anthropic = require('@anthropic-ai/sdk');
 
 /**
  * Sanitizes user input to prevent prompt injection attacks
+ * Handles control characters, quotes, and other potential injection vectors
  * @param {string} input - User provided input
  * @returns {string} - Sanitized input
  */
 function sanitizeInput(input) {
   if (typeof input !== 'string') return '';
-  // Escape backslashes first, then quotes, and limit length to prevent abuse
+  
   return input
+    // Remove control characters (except newlines/tabs which are useful)
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+    // Escape backslashes first, then quotes
     .replace(/\\/g, '\\\\')
     .replace(/"/g, '\\"')
     .replace(/`/g, '\\`')
+    // Normalize newlines
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    // Limit consecutive newlines
+    .replace(/\n{3,}/g, '\n\n')
+    // Limit input length
     .slice(0, 10000);
 }
 

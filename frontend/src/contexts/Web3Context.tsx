@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { BrowserProvider, JsonRpcSigner } from 'ethers';
 
 interface Web3ContextType {
@@ -18,6 +18,10 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
   const [signer, setSigner] = useState<JsonRpcSigner | null>(null);
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const [chainId, setChainId] = useState<number | null>(null);
+  
+  // Store handler references for targeted cleanup (prevents removing other components' listeners)
+  const accountsChangedHandler = useRef<((accounts: string[]) => void) | null>(null);
+  const chainChangedHandler = useRef<(() => void) | null>(null);
 
   const disconnect = useCallback(() => {
     setAccount(null);
@@ -33,33 +37,40 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // Remove old listeners before adding new ones to prevent memory leaks
-      window.ethereum.removeAllListeners?.('accountsChanged');
-      window.ethereum.removeAllListeners?.('chainChanged');
+      // Remove our specific handlers if they exist (preserves other listeners)
+      if (accountsChangedHandler.current) {
+        window.ethereum.removeListener?.('accountsChanged', accountsChangedHandler.current);
+      }
+      if (chainChangedHandler.current) {
+        window.ethereum.removeListener?.('chainChanged', chainChangedHandler.current);
+      }
 
       const browserProvider = new BrowserProvider(window.ethereum);
       const accounts = await browserProvider.send('eth_requestAccounts', []);
-      const signer = await browserProvider.getSigner();
+      const signerInstance = await browserProvider.getSigner();
       const network = await browserProvider.getNetwork();
 
       setProvider(browserProvider);
-      setSigner(signer);
+      setSigner(signerInstance);
       setAccount(accounts[0]);
       setChainId(Number(network.chainId));
 
-      // Listen for account changes
-      window.ethereum.on('accountsChanged', (accounts: string[]) => {
-        if (accounts.length === 0) {
+      // Create new handlers and store references
+      accountsChangedHandler.current = (newAccounts: string[]) => {
+        if (newAccounts.length === 0) {
           disconnect();
         } else {
-          setAccount(accounts[0]);
+          setAccount(newAccounts[0]);
         }
-      });
+      };
 
-      // Listen for chain changes
-      window.ethereum.on('chainChanged', () => {
+      chainChangedHandler.current = () => {
         window.location.reload();
-      });
+      };
+
+      // Attach listeners
+      window.ethereum.on('accountsChanged', accountsChangedHandler.current);
+      window.ethereum.on('chainChanged', chainChangedHandler.current);
     } catch (error) {
       console.error('Error connecting wallet:', error);
     }
@@ -75,11 +86,15 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     }
 
-    // Cleanup listeners on unmount
+    // Cleanup only our specific listeners on unmount
     return () => {
       if (typeof window.ethereum !== 'undefined') {
-        window.ethereum.removeAllListeners?.('accountsChanged');
-        window.ethereum.removeAllListeners?.('chainChanged');
+        if (accountsChangedHandler.current) {
+          window.ethereum.removeListener?.('accountsChanged', accountsChangedHandler.current);
+        }
+        if (chainChangedHandler.current) {
+          window.ethereum.removeListener?.('chainChanged', chainChangedHandler.current);
+        }
       }
     };
   }, [connect]);
