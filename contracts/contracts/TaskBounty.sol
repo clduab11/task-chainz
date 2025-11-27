@@ -57,6 +57,7 @@ contract TaskBounty is ReentrancyGuard, Ownable {
     event TaskCancelled(uint256 indexed taskId);
     event DisputeCreated(uint256 indexed disputeId, uint256 indexed taskId, address indexed initiator);
     event DisputeResolved(uint256 indexed disputeId, address indexed winner);
+    event ReputationUpdateFailed(address indexed user, uint256 indexed taskId);
     
     constructor(address _taskToken, address _reputationNFT) Ownable(msg.sender) {
         taskToken = IERC20(_taskToken);
@@ -168,7 +169,9 @@ contract TaskBounty is ReentrancyGuard, Ownable {
         }
         
         // Update reputation
-        try reputationNFT.updateReputation(task.assignee, 1, payment, 80) {} catch {}
+        try reputationNFT.updateReputation(task.assignee, 1, payment, 80) {} catch {
+            emit ReputationUpdateFailed(task.assignee, taskId);
+        }
         
         emit TaskCompleted(taskId, task.assignee, payment);
     }
@@ -251,7 +254,9 @@ contract TaskBounty is ReentrancyGuard, Ownable {
                 require(taskToken.transfer(owner(), fee), "Fee transfer failed");
             }
             
-            try reputationNFT.updateReputation(task.assignee, 1, payment, 75) {} catch {}
+            try reputationNFT.updateReputation(task.assignee, 1, payment, 75) {} catch {
+                emit ReputationUpdateFailed(task.assignee, dispute.taskId);
+            }
         } else {
             // Creator wins - refund bounty
             task.status = TaskStatus.Cancelled;

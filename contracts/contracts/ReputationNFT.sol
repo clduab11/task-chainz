@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * @dev ERC-721 NFT representing user reputation in the Task-Chainz marketplace
  */
 contract ReputationNFT is ERC721, ERC721URIStorage, Ownable {
-    uint256 private _tokenIdCounter;
+    uint256 private _tokenIdCounter = 1; // Start at 1 to avoid token ID 0 issues
     
     struct ReputationData {
         uint256 tasksCompleted;
@@ -54,7 +54,7 @@ contract ReputationNFT is ERC721, ERC721URIStorage, Ownable {
         uint256 rating
     ) external onlyOwner {
         uint256 tokenId = userTokenId[user];
-        require(tokenId > 0, "User doesn't have reputation NFT");
+        require(tokenId != 0, "User doesn't have reputation NFT");
         
         ReputationData storage rep = reputations[tokenId];
         rep.tasksCompleted += tasksCompleted;
@@ -81,7 +81,7 @@ contract ReputationNFT is ERC721, ERC721URIStorage, Ownable {
      */
     function getUserReputation(address user) external view returns (ReputationData memory) {
         uint256 tokenId = userTokenId[user];
-        require(tokenId > 0, "User doesn't have reputation NFT");
+        require(tokenId != 0, "User doesn't have reputation NFT");
         return reputations[tokenId];
     }
     

@@ -1,5 +1,7 @@
 const { create } = require('ipfs-http-client');
 
+const MAX_CONTENT_SIZE = 10 * 1024 * 1024; // 10MB limit
+
 class IPFSService {
   constructor() {
     // Connect to local IPFS node or use Infura/Pinata
@@ -20,7 +22,11 @@ class IPFSService {
    */
   async uploadToIPFS(content) {
     try {
-      const result = await this.ipfs.add(JSON.stringify(content));
+      const jsonContent = JSON.stringify(content);
+      if (Buffer.byteLength(jsonContent) > MAX_CONTENT_SIZE) {
+        throw new Error('Content exceeds maximum size limit of 10MB');
+      }
+      const result = await this.ipfs.add(jsonContent);
       return result.path; // Returns IPFS hash
     } catch (error) {
       console.error('IPFS upload error:', error);

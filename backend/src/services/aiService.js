@@ -1,5 +1,16 @@
 const Anthropic = require('@anthropic-ai/sdk');
 
+/**
+ * Sanitizes user input to prevent prompt injection attacks
+ * @param {string} input - User provided input
+ * @returns {string} - Sanitized input
+ */
+function sanitizeInput(input) {
+  if (typeof input !== 'string') return '';
+  // Escape quotes and limit length to prevent abuse
+  return input.replace(/"/g, '\\"').replace(/`/g, '\\`').slice(0, 10000);
+}
+
 class AIService {
   constructor() {
     this.anthropic = new Anthropic({
@@ -12,6 +23,9 @@ class AIService {
    */
   async categorizeTask(taskTitle, taskDescription) {
     try {
+      const sanitizedTitle = sanitizeInput(taskTitle);
+      const sanitizedDescription = sanitizeInput(taskDescription);
+      
       const message = await this.anthropic.messages.create({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1024,
@@ -20,8 +34,8 @@ class AIService {
             role: 'user',
             content: `Categorize this task and extract key skills needed. Return a JSON response.
 
-Task Title: ${taskTitle}
-Task Description: ${taskDescription}
+Task Title: """${sanitizedTitle}"""
+Task Description: """${sanitizedDescription}"""
 
 Return format:
 {
@@ -100,6 +114,8 @@ Return format:
    */
   async detectFraud(content, context = {}) {
     try {
+      const sanitizedContent = sanitizeInput(content);
+      
       const message = await this.anthropic.messages.create({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1024,
@@ -108,7 +124,7 @@ Return format:
             role: 'user',
             content: `Analyze this content for potential fraud, spam, or malicious intent.
 
-Content: ${content}
+Content: """${sanitizedContent}"""
 Context: ${JSON.stringify(context)}
 
 Return format:

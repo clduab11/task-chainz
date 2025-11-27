@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { BrowserProvider, JsonRpcSigner } from 'ethers';
 
 interface Web3ContextType {
@@ -19,12 +19,23 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const [chainId, setChainId] = useState<number | null>(null);
 
-  const connect = async () => {
+  const disconnect = useCallback(() => {
+    setAccount(null);
+    setSigner(null);
+    setProvider(null);
+    setChainId(null);
+  }, []);
+
+  const connect = useCallback(async () => {
     try {
       if (typeof window.ethereum === 'undefined') {
         alert('Please install MetaMask to use this dApp');
         return;
       }
+
+      // Remove old listeners before adding new ones to prevent memory leaks
+      window.ethereum.removeAllListeners?.('accountsChanged');
+      window.ethereum.removeAllListeners?.('chainChanged');
 
       const browserProvider = new BrowserProvider(window.ethereum);
       const accounts = await browserProvider.send('eth_requestAccounts', []);
@@ -52,14 +63,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error connecting wallet:', error);
     }
-  };
-
-  const disconnect = () => {
-    setAccount(null);
-    setSigner(null);
-    setProvider(null);
-    setChainId(null);
-  };
+  }, [disconnect]);
 
   useEffect(() => {
     // Check if already connected
@@ -70,7 +74,15 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
     }
-  }, []);
+
+    // Cleanup listeners on unmount
+    return () => {
+      if (typeof window.ethereum !== 'undefined') {
+        window.ethereum.removeAllListeners?.('accountsChanged');
+        window.ethereum.removeAllListeners?.('chainChanged');
+      }
+    };
+  }, [connect]);
 
   const value = {
     account,

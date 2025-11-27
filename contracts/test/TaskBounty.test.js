@@ -77,7 +77,7 @@ describe("TaskBounty", function () {
       await taskToken.connect(creator).approve(await taskBounty.getAddress(), bountyAmount);
       const deadline = (await time.latest()) + 86400;
       
-      const tx = await taskBounty.connect(creator).createTask(
+      await taskBounty.connect(creator).createTask(
         "Build a website",
         "QmHash123",
         bountyAmount,
