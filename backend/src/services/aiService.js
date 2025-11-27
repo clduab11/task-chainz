@@ -129,6 +129,8 @@ Return format:
   async detectFraud(content, context = {}) {
     try {
       const sanitizedContent = sanitizeInput(content);
+      // Sanitize the context by limiting its size and stringifying safely
+      const sanitizedContext = sanitizeInput(JSON.stringify(context || {}));
       
       const message = await this.anthropic.messages.create({
         model: 'claude-3-5-sonnet-20241022',
@@ -139,7 +141,7 @@ Return format:
             content: `Analyze this content for potential fraud, spam, or malicious intent.
 
 Content: """${sanitizedContent}"""
-Context: ${JSON.stringify(context)}
+Context: """${sanitizedContext}"""
 
 Return format:
 {

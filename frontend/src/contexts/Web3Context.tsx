@@ -76,9 +76,13 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [disconnect]);
 
+  // Use ref to track if we've already attempted auto-connect
+  const hasAutoConnected = useRef(false);
+
   useEffect(() => {
-    // Check if already connected
-    if (typeof window.ethereum !== 'undefined') {
+    // Check if already connected (only on mount)
+    if (!hasAutoConnected.current && typeof window.ethereum !== 'undefined') {
+      hasAutoConnected.current = true;
       window.ethereum.request({ method: 'eth_accounts' }).then((accounts: string[]) => {
         if (accounts.length > 0) {
           connect();

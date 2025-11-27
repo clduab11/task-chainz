@@ -24,6 +24,14 @@ contract ReputationNFT is ERC721, ERC721URIStorage, Ownable {
     
     event ReputationUpdated(uint256 indexed tokenId, uint256 tasksCompleted, uint256 rating, uint256 level);
     
+    /**
+     * @dev Modifier to check if user has a reputation NFT
+     */
+    modifier hasReputationNFT(address user) {
+        require(userTokenId[user] != 0, "User doesn't have reputation NFT");
+        _;
+    }
+    
     constructor() ERC721("TaskChainz Reputation", "TASKR") Ownable(msg.sender) {}
     
     /**
@@ -52,9 +60,8 @@ contract ReputationNFT is ERC721, ERC721URIStorage, Ownable {
         uint256 tasksCompleted,
         uint256 earned,
         uint256 rating
-    ) external onlyOwner {
+    ) external onlyOwner hasReputationNFT(user) {
         uint256 tokenId = userTokenId[user];
-        require(tokenId != 0, "User doesn't have reputation NFT");
         
         ReputationData storage rep = reputations[tokenId];
         rep.tasksCompleted += tasksCompleted;
@@ -79,10 +86,8 @@ contract ReputationNFT is ERC721, ERC721URIStorage, Ownable {
     /**
      * @dev Returns reputation data for a user
      */
-    function getUserReputation(address user) external view returns (ReputationData memory) {
-        uint256 tokenId = userTokenId[user];
-        require(tokenId != 0, "User doesn't have reputation NFT");
-        return reputations[tokenId];
+    function getUserReputation(address user) external view hasReputationNFT(user) returns (ReputationData memory) {
+        return reputations[userTokenId[user]];
     }
     
     // Override required functions
