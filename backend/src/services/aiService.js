@@ -7,8 +7,12 @@ const Anthropic = require('@anthropic-ai/sdk');
  */
 function sanitizeInput(input) {
   if (typeof input !== 'string') return '';
-  // Escape quotes and limit length to prevent abuse
-  return input.replace(/"/g, '\\"').replace(/`/g, '\\`').slice(0, 10000);
+  // Escape backslashes first, then quotes, and limit length to prevent abuse
+  return input
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/`/g, '\\`')
+    .slice(0, 10000);
 }
 
 class AIService {
