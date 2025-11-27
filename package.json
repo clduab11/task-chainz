@@ -1,0 +1,44 @@
+{
+  "name": "task-chainz",
+  "version": "1.0.0",
+  "description": "Decentralized task management platform with cryptocurrency rewards",
+  "private": true,
+  "workspaces": [
+    "contracts",
+    "frontend",
+    "backend",
+    "subgraph",
+    "ai"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm run install:contracts && npm run install:frontend && npm run install:backend",
+    "install:contracts": "cd contracts && npm install",
+    "install:frontend": "cd frontend && npm install",
+    "install:backend": "cd backend && npm install",
+    "test": "npm run test:contracts && npm run test:backend",
+    "test:contracts": "cd contracts && npm test",
+    "test:backend": "cd backend && npm test",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "build": "npm run build:contracts && npm run build:frontend && npm run build:backend",
+    "build:contracts": "cd contracts && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "deploy:testnet": "cd contracts && npm run deploy:testnet",
+    "deploy:mainnet": "cd contracts && npm run deploy:mainnet"
+  },
+  "keywords": [
+    "web3",
+    "defi",
+    "task-management",
+    "blockchain",
+    "ethereum",
+    "polygon"
+  ],
+  "author": "Task Chainz Team",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.6"
+  }
+}

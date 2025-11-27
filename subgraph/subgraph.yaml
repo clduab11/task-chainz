@@ -1,0 +1,89 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: TaskManager
+    network: polygon
+    source:
+      address: "0x0000000000000000000000000000000000000000" # Replace with deployed address
+      abi: TaskManager
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Task
+        - User
+        - TaskApplication
+      abis:
+        - name: TaskManager
+          file: ../contracts/artifacts/contracts/TaskManager.sol/TaskManager.json
+      eventHandlers:
+        - event: TaskCreated(indexed uint256,indexed address,uint256,uint8,string)
+          handler: handleTaskCreated
+        - event: TaskApplicationSubmitted(indexed uint256,indexed address)
+          handler: handleTaskApplication
+        - event: TaskAssigned(indexed uint256,indexed address)
+          handler: handleTaskAssigned
+        - event: TaskSubmitted(indexed uint256,string)
+          handler: handleTaskSubmitted
+        - event: TaskCompleted(indexed uint256,indexed address,uint256)
+          handler: handleTaskCompleted
+        - event: TaskCancelled(indexed uint256)
+          handler: handleTaskCancelled
+        - event: TaskDisputed(indexed uint256,indexed address)
+          handler: handleTaskDisputed
+      file: ./src/task-manager.ts
+
+  - kind: ethereum
+    name: ReputationNFT
+    network: polygon
+    source:
+      address: "0x0000000000000000000000000000000000000000" # Replace with deployed address
+      abi: ReputationNFT
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - ReputationUpdate
+      abis:
+        - name: ReputationNFT
+          file: ../contracts/artifacts/contracts/ReputationNFT.sol/ReputationNFT.json
+      eventHandlers:
+        - event: ReputationUpdated(indexed uint256,indexed address,uint256,uint8)
+          handler: handleReputationUpdated
+        - event: AchievementUnlocked(indexed uint256,indexed address,bytes32)
+          handler: handleAchievementUnlocked
+      file: ./src/reputation-nft.ts
+
+  - kind: ethereum
+    name: Gamification
+    network: polygon
+    source:
+      address: "0x0000000000000000000000000000000000000000" # Replace with deployed address
+      abi: Gamification
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - User
+        - Challenge
+        - Streak
+      abis:
+        - name: Gamification
+          file: ../contracts/artifacts/contracts/Gamification.sol/Gamification.json
+      eventHandlers:
+        - event: StreakUpdated(indexed address,uint256,uint256)
+          handler: handleStreakUpdated
+        - event: ChallengeCreated(indexed uint256,string,uint256)
+          handler: handleChallengeCreated
+        - event: ChallengeCompleted(indexed uint256,indexed address)
+          handler: handleChallengeCompleted
+      file: ./src/gamification.ts
