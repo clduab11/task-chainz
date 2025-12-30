@@ -173,7 +173,7 @@ contract TaskBounty is ReentrancyGuard, Ownable {
             // Success - reputation updated
         } catch Error(string memory reason) {
             emit ReputationUpdateFailed(task.assignee, taskId, reason);
-        } catch (bytes memory lowLevelData) {
+        } catch (bytes memory) {
             emit ReputationUpdateFailed(task.assignee, taskId, "Unknown error");
         }
         
@@ -262,7 +262,7 @@ contract TaskBounty is ReentrancyGuard, Ownable {
                 // Success - reputation updated
             } catch Error(string memory reason) {
                 emit ReputationUpdateFailed(task.assignee, dispute.taskId, reason);
-            } catch (bytes memory lowLevelData) {
+            } catch (bytes memory) {
                 emit ReputationUpdateFailed(task.assignee, dispute.taskId, "Unknown error");
             }
         } else {
