@@ -57,7 +57,7 @@ contract TaskBounty is ReentrancyGuard, Ownable {
     event TaskCancelled(uint256 indexed taskId);
     event DisputeCreated(uint256 indexed disputeId, uint256 indexed taskId, address indexed initiator);
     event DisputeResolved(uint256 indexed disputeId, address indexed winner);
-    event ReputationUpdateFailed(address indexed user, uint256 indexed taskId);
+    event ReputationUpdateFailed(address indexed user, uint256 indexed taskId, string reason);
     
     constructor(address _taskToken, address _reputationNFT) Ownable(msg.sender) {
         taskToken = IERC20(_taskToken);
@@ -169,8 +169,12 @@ contract TaskBounty is ReentrancyGuard, Ownable {
         }
         
         // Update reputation
-        try reputationNFT.updateReputation(task.assignee, 1, payment, 80) {} catch {
-            emit ReputationUpdateFailed(task.assignee, taskId);
+        try reputationNFT.updateReputation(task.assignee, 1, payment, 80) {
+            // Success - reputation updated
+        } catch Error(string memory reason) {
+            emit ReputationUpdateFailed(task.assignee, taskId, reason);
+        } catch (bytes memory lowLevelData) {
+            emit ReputationUpdateFailed(task.assignee, taskId, "Unknown error");
         }
         
         emit TaskCompleted(taskId, task.assignee, payment);
@@ -254,8 +258,12 @@ contract TaskBounty is ReentrancyGuard, Ownable {
                 require(taskToken.transfer(owner(), fee), "Fee transfer failed");
             }
             
-            try reputationNFT.updateReputation(task.assignee, 1, payment, 75) {} catch {
-                emit ReputationUpdateFailed(task.assignee, dispute.taskId);
+            try reputationNFT.updateReputation(task.assignee, 1, payment, 75) {
+                // Success - reputation updated
+            } catch Error(string memory reason) {
+                emit ReputationUpdateFailed(task.assignee, dispute.taskId, reason);
+            } catch (bytes memory lowLevelData) {
+                emit ReputationUpdateFailed(task.assignee, dispute.taskId, "Unknown error");
             }
         } else {
             // Creator wins - refund bounty

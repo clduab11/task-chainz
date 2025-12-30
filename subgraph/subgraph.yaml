@@ -6,12 +6,15 @@ dataSources:
     name: TaskBounty
     network: polygon
     source:
-      # WARNING: Replace with actual deployed contract address before deployment
-      # Deploying with placeholder values will fail
+      # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      # IMPORTANT: MUST UPDATE BEFORE DEPLOYMENT TO PRODUCTION
+      # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      # 1. Replace address with actual deployed TaskBounty contract address
+      # 2. Replace startBlock with the block number where contract was deployed
+      # 3. Deploying with these placeholder values WILL FAIL or be very slow
+      # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       address: "0x0000000000000000000000000000000000000000"
       abi: TaskBounty
-      # WARNING: Replace with actual deployment block number before deployment
-      # Using 0 will cause slow indexing from genesis block
       startBlock: 0
     mapping:
       kind: ethereum/events

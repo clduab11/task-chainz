@@ -6,7 +6,8 @@ const TaskDetail = () => {
   const { id } = useParams();
   const { isConnected } = useWeb3();
 
-  // Mock task data
+  // TODO: Replace mock data with actual task fetching from The Graph
+  // Query should fetch task by ID from the subgraph
   const task = {
     id: id,
     title: 'Build a React Dashboard',
