@@ -22,7 +22,7 @@ function getOrCreateUser(address: string): User {
 }
 
 export function handleTaskCreated(event: TaskCreated): void {
-  let task = new Task(event.params.param0.toString())
+  const task = new Task(event.params.param0.toString())
   task.taskId = event.params.param0
   task.creator = getOrCreateUser(event.params.param1.toHexString()).id
   task.title = ""
@@ -36,7 +36,7 @@ export function handleTaskCreated(event: TaskCreated): void {
 }
 
 export function handleTaskAssigned(event: TaskAssigned): void {
-  let task = Task.load(event.params.param0.toString())
+  const task = Task.load(event.params.param0.toString())
   if (task != null) {
     task.assignee = getOrCreateUser(event.params.param1.toHexString()).id
     task.status = "Assigned"
@@ -45,7 +45,7 @@ export function handleTaskAssigned(event: TaskAssigned): void {
 }
 
 export function handleTaskSubmitted(event: TaskSubmitted): void {
-  let task = Task.load(event.params.param0.toString())
+  const task = Task.load(event.params.param0.toString())
   if (task != null) {
     task.status = "Submitted"
     task.save()
@@ -53,7 +53,7 @@ export function handleTaskSubmitted(event: TaskSubmitted): void {
 }
 
 export function handleTaskCompleted(event: TaskCompleted): void {
-  let task = Task.load(event.params.param0.toString())
+  const task = Task.load(event.params.param0.toString())
   if (task != null) {
     task.status = "Completed"
     task.completedAt = event.block.timestamp
@@ -61,7 +61,7 @@ export function handleTaskCompleted(event: TaskCompleted): void {
     task.save()
 
     // Update user stats
-    let user = User.load(event.params.param1.toHexString())
+    const user = User.load(event.params.param1.toHexString())
     if (user != null) {
       user.totalEarned = user.totalEarned.plus(event.params.param2)
       user.tasksCompleted = user.tasksCompleted + 1
@@ -71,7 +71,7 @@ export function handleTaskCompleted(event: TaskCompleted): void {
 }
 
 export function handleTaskCancelled(event: TaskCancelled): void {
-  let task = Task.load(event.params.param0.toString())
+  const task = Task.load(event.params.param0.toString())
   if (task != null) {
     task.status = "Cancelled"
     task.fundsReleased = true
@@ -80,7 +80,7 @@ export function handleTaskCancelled(event: TaskCancelled): void {
 }
 
 export function handleDisputeCreated(event: DisputeCreated): void {
-  let dispute = new Dispute(event.params.param0.toString())
+  const dispute = new Dispute(event.params.param0.toString())
   dispute.disputeId = event.params.param0
   dispute.task = event.params.param1.toString()
   dispute.initiator = getOrCreateUser(event.params.param2.toHexString()).id
@@ -90,7 +90,7 @@ export function handleDisputeCreated(event: DisputeCreated): void {
   dispute.save()
 
   // Update task status
-  let task = Task.load(event.params.param1.toString())
+  const task = Task.load(event.params.param1.toString())
   if (task != null) {
     task.status = "Disputed"
     task.save()
@@ -98,7 +98,7 @@ export function handleDisputeCreated(event: DisputeCreated): void {
 }
 
 export function handleDisputeResolved(event: DisputeResolved): void {
-  let dispute = Dispute.load(event.params.param0.toString())
+  const dispute = Dispute.load(event.params.param0.toString())
   if (dispute != null) {
     dispute.resolved = true
     dispute.winner = getOrCreateUser(event.params.param1.toHexString()).id
